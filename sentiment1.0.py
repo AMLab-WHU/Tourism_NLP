@@ -15,7 +15,7 @@ def stopwordslist(filepath):
 # 对句子进行分词  
 def seg_sentence(sentence):  
     sentence_seged = jieba.cut(sentence.strip())  
-    stopwords = stopwordslist('C:/Users/cong/Desktop/网贷之家爬虫/平台.txt')  # 这里加载停用词的路径  
+    stopwords = stopwordslist('stopwords.txt')  # 这里加载停用词的路径
     outstr = ''  
     for word in sentence_seged:  
         if word not in stopwords:  
@@ -51,11 +51,11 @@ def get_sentiment_cn(text):
 
 if __name__ == '__main__':
     #打开评论文件
-    f=open('C:/Users/cong/Desktop/网贷之家爬虫/comments/platcom/理想宝583.csv')
+    f=open('xiecheng.csv', encoding='utf-8')
     df=pd.read_csv(f)
     print(df.iloc[:,0].size)
     #计算df中评论的情感值
-    df["keywords"]= df["内容"].apply(get_keywords)
+    df["keywords"]= df["content"].apply(get_keywords)
     df["sentiment"] = df["keywords"].apply(get_sentiment_cn)
-    df.to_csv('C:/Users/cong/Desktop/网贷之家爬虫/comments/platcom/理想宝583-处理后2.csv',index_label="index_label")
+    df.to_csv('xiecheng2.csv',index_label="index_label")
 

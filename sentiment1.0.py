@@ -62,5 +62,5 @@ if __name__ == '__main__':
     print(df.iloc[:, 0].size)
     # 计算df中评论的情感值
     df["keywords"] = df["content"].apply(get_keywords)
-    df["sentiment"] = df["keywords"].apply(get_sentiment_cn)
+    df["sentiment"] = df["content"].apply(get_sentiment_cn)
     df.to_csv('xiecheng2.csv', index_label="index_label")

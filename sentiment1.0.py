@@ -64,3 +64,4 @@ if __name__ == '__main__':
     df["keywords"] = df["content"].apply(get_keywords)
     df["sentiment"] = df["content"].apply(get_sentiment_cn)
     df.to_csv('xiecheng2.csv', index_label="index_label")
+    #ceshi

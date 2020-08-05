@@ -4,7 +4,7 @@ import pandas as pd
 from snownlp import SnowNLP
 import jieba
 from jieba import analyse
-
+import matplotlib.pyplot as plt
 
 # 加载自定义词典
 # jieba.load_userdict('C:/Users/cong/Desktop/网贷之家爬虫/平台.txt')
@@ -15,7 +15,7 @@ def stopwordslist(filepath):
     return stopwords
 
 
-# 对句子进行分词  
+# 对句子进行分词
 def seg_sentence(sentence):
     sentence_seged = jieba.cut(sentence.strip())
     stopwords = stopwordslist('stopwords.txt')  # 这里加载停用词的路径
@@ -63,5 +63,19 @@ if __name__ == '__main__':
     # 计算df中评论的情感值
     df["keywords"] = df["content"].apply(get_keywords)
     df["sentiment"] = df["content"].apply(get_sentiment_cn)
+    # 改变评论时间的数据类型与格式
+    df["time"] = df['time'].apply(lambda x: x.split(' ')[0])  # 时间只取日期，忽略具体时间点
+    df["time"] = pd.to_datetime(df["time"], format='%Y-%m-%d')  # 将“time”列数据转换为时间类型
     df.to_csv('xiecheng2.csv', index_label="index_label")
     #ceshi
+
+    ## 计算每日文本情感均值
+    data = df[['time', 'sentiment']]  # 抽取出时间列和情感值列
+    # data.sort_values('time', inplace=True)  # 根据时间列进行排序
+    data.set_index('time', inplace=True)  # 将“time”列数据重置为索引，并扩展到前面的数据
+    data = data.resample('M').mean()  # 按月采样，计算均值，问题是没有数据的行也会显示出来
+    # data.to_csv('xiecheng3.csv', index_label="index_label")
+
+    ## 绘制每月情感趋势图
+    data.sentiment.plot(figsize=(15, 8), title='Monthly Sentiment', fontsize=14)
+    plt.show()

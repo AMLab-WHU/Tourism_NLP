@@ -5,6 +5,8 @@ from snownlp import SnowNLP
 import jieba
 from jieba import analyse
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+
 
 # 加载自定义词典
 # jieba.load_userdict('C:/Users/cong/Desktop/网贷之家爬虫/平台.txt')
@@ -54,6 +56,16 @@ def get_sentiment_cn(text):
     s = SnowNLP(text)
     return s.sentiments
 
+# 判断积极 or 消极 or 中性
+def get_sentimentbyself(score):
+    if score > 0.5:
+        s_byself = "积极"
+    elif score == 0.5:
+        s_byself = "中性"
+    else:
+        s_byself = "消极"
+    return s_byself
+
 
 if __name__ == '__main__':
     # 打开评论文件
@@ -66,16 +78,43 @@ if __name__ == '__main__':
     # 改变评论时间的数据类型与格式
     df["time"] = df['time'].apply(lambda x: x.split(' ')[0])  # 时间只取日期，忽略具体时间点
     df["time"] = pd.to_datetime(df["time"], format='%Y-%m-%d')  # 将“time”列数据转换为时间类型
-    df.to_csv('xiecheng2.csv', index_label="index_label")
+    #df.to_csv('xiecheng2.csv', index_label="index_label")
     #ceshi
 
-    ## 计算每日文本情感均值
     data = df[['time', 'sentiment']]  # 抽取出时间列和情感值列
     # data.sort_values('time', inplace=True)  # 根据时间列进行排序
     data.set_index('time', inplace=True)  # 将“time”列数据重置为索引，并扩展到前面的数据
-    data = data.resample('M').mean()  # 按月采样，计算均值，问题是没有数据的行也会显示出来
-    # data.to_csv('xiecheng3.csv', index_label="index_label")
+    start_time = input("请输入您想要查看的时间段的开始日期（如 2015-12-31）：").replace("/n","")
+    end_time = input("请输入您想要查看的时间段的结束日期（如 2015-12-31）：").replace("/n","")
 
-    ## 绘制每月情感趋势图
-    data.sentiment.plot(figsize=(15, 8), title='Monthly Sentiment', fontsize=14)
+    ## 绘制情感倾向人数图
+    # 判断积极 or 消极 or 中性
+    data["sentimentbyself"] = data["sentiment"].apply(get_sentimentbyself)
+    #data.to_csv('xiecheng3.csv', index_label="index_label")
+    data_p = data[(data.sentimentbyself == "积极")]
+    data_n = data[(data.sentimentbyself == "消极")]
+    data_z = data[(data.sentimentbyself == "中性")]
+    data_p = data_p.resample('D').count()
+    data_n = data_n.resample('D').count()
+    data_z = data_z.resample('D').count()
+    data_z.to_csv('xiecheng4.csv', index_label="index_label")
+    plt.figure(figsize=(12, 8))
+    plt.plot(data_p.loc[start_time:end_time].index, data_p.loc[start_time:end_time].sentimentbyself, label='Positive numbers')
+    plt.plot(data_n.loc[start_time:end_time].index, data_n.loc[start_time:end_time].sentimentbyself, label='Negative numbers')
+    plt.plot(data_z.loc[start_time:end_time].index, data_z.loc[start_time:end_time].sentimentbyself, label='Neutual numbers')
+    plt.legend(loc='best')
+    plt.title("Daily Trends")
     plt.show()
+
+    ## 绘制每日情感值趋势图
+    # 计算每日文本情感均值
+    #data["sentiment"] = data.resample('D').mean()  # 按月采样，计算均值，问题是没有数据的行也会显示出来
+    #data['sentiment'].fillna(0, inplace=True)  # 空值用0填充
+    #data.to_csv('xiecheng3.csv', index_label="index_label")
+    #data.loc[start_time:end_time].plot(figsize=(15, 8), title="Daily Sentiments", fontsize=8)
+    # 配置横坐标
+    #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    #plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+    #plt.gcf().autofmt_xdate()  # 自动旋转日期标记
+    #plt.show()
+

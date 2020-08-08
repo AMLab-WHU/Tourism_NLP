@@ -14,6 +14,12 @@ import codecs
 import sys
 # imp模块提供了一个可以实现import语句的接口
 from imp import reload
+import pymysql
+
+#import sys;
+#sys.path.append('/Users/co-occurence1');
+#from Database import Database;
+from data_admin import Database;
 
 
 #定义分词函数
@@ -263,14 +269,34 @@ def main():
     stopwords_path = 'stopwords.txt'
     excel_path = 'raw_data.xlsx'
     output_path = r'co_matrix.txt'
-    d = pd.read_excel(excel_path, sheetname=None)
-    # d['result'] = pd.DataFrame(['MachineLearning','DeepLearning'],index=['0','1'])
-    print(type((d['xiecheng'].content)))
-    comment_list_raw = d['xiecheng'].content.values
-    #评论去重
+
+
+    #从数据库导入数据
+
+    Data_admin = Database()
+    output = Data_admin.select_data()
+    #print(output)
+    #print(type(output))
+    comment_list_raw = []
+    for i in range(len(output)):
+        comment_list_raw.append(output[i][1])
+    # 评论去重
     comment_list = list(set(comment_list_raw))
-    # print(d['xiecheng'].content)
-#
+    #print(comment_list)
+
+
+
+    # #从excel表格导入数据
+    #
+    # d = pd.read_excel(excel_path, sheetname=None)
+    # # d['result'] = pd.DataFrame(['MachineLearning','DeepLearning'],index=['0','1'])
+    # print(type((d['xiecheng'].content)))
+    # comment_list_raw = d['xiecheng'].content.values
+    # #评论去重
+    # comment_list = list(set(comment_list_raw))
+    # # print(d['xiecheng'].content)
+    # #print(comment_list)
+    #
 
 
     #设置停用词

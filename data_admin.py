@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 # Author : Gary
 import pymysql
+from snownlp import SnowNLP
 
 
 # ******************************************数据库操作***************************************************#
@@ -67,8 +68,23 @@ class Database:
         sql='update sentiment set BaiduSentiment="{}" , BaiduConfidence="{}" where autoId={}'.format(Sentiment,Confidence,autoId)
         # print(sql)
         self.database(sql)
+    def insert_score(self):
+        sql = 'select autoId, content from sentiment'
+        data = self.database(sql)
+        for text in data:
+            s = SnowNLP(text[1])
+            if s.sentiments > 0.5:
+                s_byself = "积极"
+            elif s.sentiments == 0.5:
+                s_byself = "中性"
+            else:
+                s_byself = "消极"
+            sql = 'update sentiment set Score="{}", Sentimentbyself="{}" where autoId={}'.format(s.sentiments,s_byself,text[0])
+            self.database(sql)
+
 
 if __name__ == '__main__':
     Data_admin = Database()
     output = Data_admin.select_data()
+    Data_admin.insert_score()
     print(output)

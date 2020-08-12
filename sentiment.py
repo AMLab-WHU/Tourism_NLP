@@ -63,8 +63,7 @@ def get_data_list(dict_data):
     return final_date_list,data_list
 
 ## 绘制情感倾向人数图
-def draw_trend():
-    date_list = get_date_list()
+def draw_trend(date_list):
     dict_data_p = {} # 存储时间与积极倾向评论数的对应关系
     dict_data_n = {}  # 存储时间与消极倾向评论数的对应关系
     dict_data_z = {}  # 存储时间与中性倾向评论数的对应关系
@@ -97,10 +96,40 @@ def draw_trend():
         plt.legend(loc='best')  # 显示上面的label
         plt.show()
 
-
+## 绘制情感值变化趋势图
+def draw_sentiment(date_list):
+    dict_data = {}  # 存储时间与情感值的对应关系
+    Data_admin = Database()
+    sql = 'select publishTime,sentiment.Score from ctrip_comments, sentiment where ctrip_comments.autoId=sentiment.autoId'
+    data = Data_admin.database(sql)
+    print(data)
+    for term in date_list:
+        sentiment_c, num = 0.0, 0
+        for text in data:
+            if text[0].strftime('%Y-%m-%d') == term:
+                sentiment_c += text[1]
+                num += 1
+        if num == 0:
+            dict_data[term] = 0   ## 没有数据的日期设置为0
+        else:
+            sentiment_a = sentiment_c / num  ## 求每日情感值的平均值
+            dict_data[term] = sentiment_a
+    final_date, data_list = get_data_list(dict_data)
+    plt.figure(figsize=(10, 6))
+    plt.plot(final_date, data_list, marker='o',label='Sentiments')
+    plt.title("Daily Sentiments")
+    plt.xticks(rotation=90, size=8)  # 横坐标旋转90度
+    plt.legend(loc='best')  # 显示上面的label
+    plt.show()
 
 
 ## 执行程序
 if __name__ == '__main__':
-    #insert_score()
-    draw_trend()
+    '''
+    需要先在sentiment表上新建字段Score和Sentimentbyself
+    Score为float类型，Sentimentbyself为varchar类型
+    '''
+    insert_score()  ## 插入情感值和情感倾向
+    date_list = get_date_list() ## 时间数据处理：获取两时间点内的日期列表
+    draw_trend(date_list) ## 绘制情感倾向人数图
+    draw_sentiment(date_list) ## 绘制情感值变化趋势图

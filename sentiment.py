@@ -102,7 +102,6 @@ def draw_sentiment(date_list):
     Data_admin = Database()
     sql = 'select publishTime,sentiment.Score from ctrip_comments, sentiment where ctrip_comments.autoId=sentiment.autoId'
     data = Data_admin.database(sql)
-    print(data)
     for term in date_list:
         sentiment_c, num = 0.0, 0
         for text in data:

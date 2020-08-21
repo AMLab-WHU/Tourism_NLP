@@ -4,7 +4,6 @@ from data_admin import Database
 from snownlp import SnowNLP
 import datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
 
 # 使用snownlp获取文本情感值
@@ -33,13 +32,22 @@ def insert_score():
     data_2 = Data_admin.database(sql_2)
     data_list = []
     for text in data_2:
-        score = get_sentiment_cn(text[1])
-        s_byself = get_sentimentbyself(score)
+        """
+               避免重复处理数据
+        """
         if text in data_1:
-            sql_3 = 'update sentiment set Score="{}", Sentimentbyself="{}" where autoId={}'.format(score, s_byself,
-                                                                                                   text[0])
-            Data_admin.database(sql_3)
+            sql_3 = 'select Score from sentiment where autoId = {}'.format(text[0])
+            data_3 = Data_admin.database(sql_3)
+            if data_3 is not None:
+                continue
+            else:
+                score = get_sentiment_cn(text[1])
+                s_byself = get_sentimentbyself(score)
+                sql_4 = 'update sentiment set Score="{}", Sentimentbyself="{}" where autoId={}'.format(score, s_byself, text[0])
+                Data_admin.database(sql_4)
         else:
+            score = get_sentiment_cn(text[1])
+            s_byself = get_sentimentbyself(score)
             data_list.append((text[0], text[1], score, s_byself))
     sql = 'insert into sentiment(autoId,content,Score,Sentimentbyself) values (%s, %s, %s,%s)'
     Data_admin.database(sql, data_list=data_list)

@@ -26,31 +26,43 @@ def get_sentimentbyself(score):
 # 插入情感值和情感倾向
 def insert_score():
     Data_admin = Database()
-    sql_1 = 'select autoId, content from sentiment'
+    sql_1 = 'select autoId, content from ctrip_comments where autoId not in ( select autoId from sentiment)'
     data_1 = Data_admin.database(sql_1)
-    sql_2 = 'select autoId, content from ctrip_comments'
-    data_2 = Data_admin.database(sql_2)
     data_list = []
-    for text in data_2:
-        """
-               避免重复处理数据
-        """
-        if text in data_1:
-            sql_3 = 'select Score from sentiment where autoId = {}'.format(text[0])
-            data_3 = Data_admin.database(sql_3)
-            if data_3 is not None:
-                continue
-            else:
-                score = get_sentiment_cn(text[1])
-                s_byself = get_sentimentbyself(score)
-                sql_4 = 'update sentiment set Score="{}", Sentimentbyself="{}" where autoId={}'.format(score, s_byself, text[0])
-                Data_admin.database(sql_4)
-        else:
-            score = get_sentiment_cn(text[1])
-            s_byself = get_sentimentbyself(score)
-            data_list.append((text[0], text[1], score, s_byself))
+    for text in data_1:
+        score = get_sentiment_cn(text[1])
+        s_byself = get_sentimentbyself(score)
+        data_list.append((text[0], text[1], score, s_byself))
     sql = 'insert into sentiment(autoId,content,Score,Sentimentbyself) values (%s, %s, %s,%s)'
     Data_admin.database(sql, data_list=data_list)
+
+    """
+           考虑到之前数据库数据中有数据仅Socre、Sentimentbyself 字段不完整
+    """
+    #Data_admin = Database()
+    #sql_1 = 'select autoId, content from sentiment'
+    #data_1 = Data_admin.database(sql_1)
+    #ql_2 = 'select autoId, content from ctrip_comments'
+    #data_2 = Data_admin.database(sql_2)
+    #data_list = []
+    #for text in data_2:
+    #    if text in data_1:
+    #        sql_3 = 'select Score from sentiment where autoId = {}'.format(text[0])
+    #        data_3 = Data_admin.database(sql_3)
+    #        if data_3 is not None:
+    #            continue
+    #        else:
+    #            score = get_sentiment_cn(text[1])
+    #            s_byself = get_sentimentbyself(score)
+    #            sql_4 = 'update sentiment set Score="{}", Sentimentbyself="{}" where autoId={}'.format(score, s_byself, text[0])
+    #            Data_admin.database(sql_4)
+    #    else:
+    #        score = get_sentiment_cn(text[1])
+    #        s_byself = get_sentimentbyself(score)
+    #        data_list.append((text[0], text[1], score, s_byself))
+    #sql = 'insert into sentiment(autoId,content,Score,Sentimentbyself) values (%s, %s, %s,%s)'
+    #Data_admin.database(sql, data_list=data_list)
+
 
 
 # 时间数据处理：获取两时间点内的日期列表
